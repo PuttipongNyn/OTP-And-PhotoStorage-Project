@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>OTP LOGIN</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+      integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href={{ url_for('static', filename='css/otp.css') }}
+    />
+  </head>
+  <body class="full-screen-center">
+    <div id="logged-in" class="container d-none">
+        <div class="row d-flex justify-content-center" style="flex-direction: column;">
+            <div class="col-4 my-1 mx-auto">
+                เข้าสู่ระบบสำเร็จ,
+            </div>
+            <div class="col-4 my-1  mx-auto">
+                <h4><b>สวัสดี ยินดีด้วย รหัสOTPถูกต้อง</b></h4>
+            </div>
+            <div class="col-4 my-1 mx-auto">
+                <button type="button" onclick="cloudPhoto()" class="btn btn-success btn-lg">
+                    เข้าสู่ระบบคลาวด์รูปภาพ
+                </button>
+            </div>
+            <div class="col-4 my-1  mx-auto">
+                <button type="button" onclick="logOut()" class="btn btn-danger btn-sm">
+                    ออกจากระบบ
+                </button>
+            </div>
+        </div>
+    </div>
+    <div id="cloudPhoto" class="container d-none">
+        <div class="row d-flex justify-centent-center" style="flex-direction: column;">
+            <div class="col-4 my-4 mx-auto">
+                <h4><b>ยินดีต้อนรับสู่ระบบคลาวด์จัดเก็บรูปภาพ</b></h4>
+            </div>
+            <form action="/uploadImages" class="form-inline justify-content-center" enctype="multipart/form-data" method="POST"> 
+                <input type="file" name="pic" />
+                <input type="submit" value="Upload a file"/>
+             </form>
+             <div class="col-4 my-4 mx-auto">
+                 <button type="button" onclick="cloudPhotoDownload()" class="btn btn-success btn-lg">ดาวน์โหลดรูปภาพ</button>
+                 <div class="row-4 my-4 mx-auto">
+                    <button type="button" onclick="backtomain()" class="btn btn-success btn-lg">กลับสู่หน้าเเรก</button>
+                 </div>
+             </div>
+        </div>
+    </div>
+    <div id="cloudPhotoDownload" class="container d-none">
+        <div class="row d-flex justify-centent-center" style="flex-direction: column;">
+            <div class="col-4 my-4 mx-auto">
+                <h1><b>ดาวน์โหลดรูปภาพ</b></h4>
+            </div>
+             <div class="col-4 my-1 mx-auto">
+                 <form>
+                    <input type="text" id="number" value="0"/> <input type="button" onclick="incrementValue()" value="กดเพื่อเพิ่มจำนวนลำดับในการเลือกรูป" />
+                 </form>
+                 <button id="myButton" class="float-left submit-button" >ดาวน์โหลด</button>
+             </div>
+             <div class="col-4 my-4 mx-auto">
+                <button type="button" onclick="cloudPhoto()" class="btn btn-success btn-lg">กลับสู่หน้าอัพโหลด</button>
+             </div>
+        </div>
+    </div>
+    <div id="otp-field" class="container">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h1 id="page-title" class="section-title text-center">
+                    ยืนยัน OTP
+                </h1>
+                <p id="logged-in-email" class="text-center">สวัสดีคุณ <span id="email">{{ email }}</span></p>
+            </div>
+            <div class="col-12 justify-content-center">
+                <form id="calculate-number-form"class="form-inline justify-content-center" onsubmit="formSubmit()">
+                    <div class="form-group">
+                        <input
+                            type="text"
+                            id="otp-input"
+                            class="form-control text-center"
+                            name="otp-input"
+                            placeholder="● ● ● ● ● ●"
+                        />
+                    </div>
+                    <div class="form-group">
+                        <button id="get-otp-button" type="button" onclick="getOtpCode()" class="btn btn-outline-primary otp-button">
+                            ขอรหัส OTP
+                        </button>
+                        <button id="login-button" type="submit" class="d-none btn btn-primary ml-2">เข้าสู่ระบบ</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="row">
+            <div id="renew-otp" class="col-12 text-center mt-4 d-none">
+                <p>กรุณาระบุ OTP Code ภายในระยะเวลา 30 วินาที</p>
+                <a href="javascript:void(0)" onclick="renewOtpCode()">ขอรหัส OTP อีกครั้ง</a>
+            </div>
+            <div id="waiting-renew-otp" class="col-12 text-center mt-4 d-none">
+                <p>กรุณาระบุ OTP Code ภายในระยะเวลา 30 วินาที</p>
+                <span>คุณสามารถขอ OTP ได้ใหม่อีกครั้งภายในเวลา <span id="time-waiting-otp">30</span> วินาที</span>
+            </div>
+        </div>
+    </div>
+    <script
+      src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+      integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+      integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+      integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <script>
+
+            let email = $('#email').text()
+            if(email !== ""){
+                localStorage.setItem("email", email)
+            }
+
+            var timeRenew = 30
+            var intervalTimer = setInterval(function(){ 
+                timeRenew = timeRenew - 1
+                if(timeRenew == 0){
+                    clearInterval(intervalTimer)
+                    $('#waiting-renew-otp').addClass('d-none')
+                    $('#renew-otp').removeClass('d-none')
+                    timeRenew = 30
+                    $('#time-waiting-otp').empty()
+                    $('#time-waiting-otp').append(timeRenew)
+                }else{
+                    $('#time-waiting-otp').empty()
+                    $('#time-waiting-otp').append(timeRenew)
+                }
+            }, 1000);
+
+        (function($) {
+            $.fn.inputFilter = function(inputFilter) {
+                return this.on("input keydown keyup mousedown mouseup select contextmenu drop", function() {
+                if (inputFilter(this.value)) {
+                    this.oldValue = this.value;
+                    this.oldSelectionStart = this.selectionStart;
+                    this.oldSelectionEnd = this.selectionEnd;
+                } else if (this.hasOwnProperty("oldValue")) {
+                    this.value = this.oldValue;
+                    this.setSelectionRange(this.oldSelectionStart, this.oldSelectionEnd);
+                } else {
+                    this.value = "";
+                }
+                });
+            };
+        }(jQuery));
+
+        $( document ).ready(function() {
+
+            $("#otp-input").inputFilter(function(value) {
+                return /^\d*$/.test(value);
+            });
+
+            let otp_storage = localStorage.getItem('otp_number')
+            let logged_in = localStorage.getItem('logged_in')
+            let otpTimeChecking = localStorage.getItem('otpTimeChecking')
+            if(typeof logged_in !== 'undefined' && logged_in !== null){
+                $('#logged-in').removeClass('d-none')
+                $('#otp-field').addClass('d-none')
+            }else{
+                if(typeof otp_storage !== 'undefined' && otp_storage !== null){
+                    $('#login-button').removeClass('d-none')
+                    $('#get-otp-button').addClass('d-none')
+                    $('#waiting-renew-otp').removeClass('d-none')
+                    otpTimeDisplay()
+                }else{
+                    $('#login-button').addClass('d-none')
+                    $('#get-otp-button').removeClass('d-none')
+                    $('#waiting-renew-otp').addClass('d-none')
+                    $('#renew-otp').addClass('d-none')
+                }
+            }
+            
+        });
+
+        const logOut =()=> {
+            localStorage.clear()
+            location.href = "http://127.0.0.1:5000/"
+        }
+
+        
+        const formSubmit =()=> {
+            event.preventDefault()
+            let otp_input_value = parseInt($('#otp-input').val())
+            let otp_storage = parseInt(localStorage.getItem('otp_number'))
+            console.log(otp_input_value)
+            let otp_time_expire = localStorage.getItem('otp_time_expire')
+            if(otp_input_value !== otp_storage){
+                alert('คุณระบุ OTP ไม่ถูกต้อง')
+            }else{
+                if(otp_time_expire == 'false'){
+                    clearInterval(intervalTimer)
+                    localStorage.setItem('logged_in', true)
+                    localStorage.setItem('otp_time_expire', true)
+                    $('#logged-in').removeClass('d-none')
+                    $('#otp-field').addClass('d-none')
+                }else{
+                    alert('OTP Code หมดอายุการใช้งาน')
+                }
+                
+            }
+        }
+
+        const otpTimeDisplay =()=>{
+            $('#waiting-renew-otp').removeClass('d-none')
+            $('#renew-otp').addClass('d-none')
+            clearInterval(intervalTimer)
+            timeRenew = 30
+            intervalTimer = setInterval(function(){ 
+                timeRenew = timeRenew - 1
+                if(timeRenew == 0){
+                    clearInterval(intervalTimer)
+                    $('#waiting-renew-otp').addClass('d-none')
+                    $('#renew-otp').removeClass('d-none')
+                    timeRenew = 30
+                    $('#time-waiting-otp').empty()
+                    $('#time-waiting-otp').append(timeRenew)
+                }else{
+                    $('#time-waiting-otp').empty()
+                    $('#time-waiting-otp').append(timeRenew)
+                }
+            }, 1000);
+        }
+
+        const renewOtpCode =()=>{
+            $('#get-otp-button').text("Loading...")
+            $('#get-otp-button').attr('disabled', true);
+            axios.post('http://127.0.0.1:5000/otp-message', {
+                email: $('#email').text()
+            }, {
+                headers:{
+                  contentType: 'application/json; charset=utf-8'
+                }
+            })
+                .then(async(response)=> {
+                    $('#get-otp-button').text("ขอรหัส OTP")
+                    $('#get-otp-button').attr('disabled', false);
+                    localStorage.setItem('otp_number', response.data.otp_number)
+                    localStorage.setItem('otp_time_expire', false)
+                    setTimeout(function(){ 
+                        localStorage.setItem('otp_time_expire', true)
+                    }, 30000);
+                    await otpTimeDisplay()
+                })
+                .catch((error)=> {
+                    $('#get-otp-button').text("ขอรหัส OTP")
+                    $('#get-otp-button').attr('disabled', false);
+                    console.error(error.message)
+                })
+        }
+
+        const getOtpCode =()=> {
+            $('#get-otp-button').text("Loading...")
+            $('#get-otp-button').attr('disabled', true);
+            axios.post('http://127.0.0.1:5000/otp-message', {
+                email: $('#email').text()
+            }, {
+                headers:{
+                  contentType: 'application/json; charset=utf-8'
+                }
+            })
+                .then(async(response)=> {
+                    $('#get-otp-button').text("ขอรหัส OTP")
+                    $('#get-otp-button').attr('disabled', false);
+                    localStorage.setItem('otp_number', response.data.otp_number)
+                    $('#login-button').removeClass('d-none')
+                    $('#get-otp-button').addClass('d-none')
+                    localStorage.setItem('otp_time_expire', false)
+                    setTimeout(function(){ 
+                        localStorage.setItem('otp_time_expire', true)
+                    }, 30000);
+                    await otpTimeDisplay()
+                })
+                .catch((error)=> {
+                    $('#get-otp-button').text("ขอรหัส OTP")
+                    $('#get-otp-button').attr('disabled', false);
+                    console.error(error.message)
+                })
+        }
+        const backtomain =()=>{
+            $('#cloudPhoto').addClass('d-none')
+            $('#logged-in').removeClass('d-none')
+            
+        }
+        const cloudPhoto =()=>{
+            $('#logged-in').addClass('d-none')
+            $('#cloudPhoto').removeClass('d-none')
+            $('#cloudPhotoDownload').addClass('d-none')
+        } 
+        const cloudPhotoDownload =()=>{
+            $('#cloudPhoto').addClass('d-none')
+            $('#cloudPhotoDownload').removeClass('d-none')
+        }
+        function incrementValue(){
+            var value = parseInt(document.getElementById('number').value, 10);
+            value = isNaN(value) ? 0 : value;
+            value++;
+            document.getElementById('number').value = value;
+            document.getElementById("myButton").onclick = function () {
+            location.href = "http://127.0.0.1:5000/downloadImages/"+value;
+        };
+        }
+        
+    </script>
+  </body>
+</html>
